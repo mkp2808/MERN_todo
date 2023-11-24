@@ -1,0 +1,219 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300&display=swap');
+
+/** --------------------- Global styling ---------------------*/
+/* scroll */
+
+/* Scrollbar track */
+::-webkit-scrollbar {
+    width: 8px;
+    background-color: #bfbebe;
+}
+
+/* Scrollbar handle */
+::-webkit-scrollbar-thumb {
+    background-color: #4c5c65;
+    border-radius: 10px;
+}
+
+/* Scrollbar handle hover */
+::-webkit-scrollbar-thumb:hover {
+    background-color: #555555;
+    background-color: #25343c;
+}
+
+
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: #D3E0DC;
+}
+
+.error {
+    font-size: 12px !important;
+    color: red;
+}
+
+.hr {
+    margin: 4px 0;
+}
+
+/* .Toastify__toast {
+    background-color: #f4f4f4;
+    color: #333;
+    border: 1px solid #ddd;
+    padding: 10px;
+    margin-bottom: 10px;
+  }
+  
+  .Toastify__toast-body {
+    font-size: 14px;
+  } */
+
+
+/** --------------------- Login & Register common page styling ---------------------*/
+#register .login-link .toLogin,
+#login .register-link .toRegister {
+    /* text-decoration: none; */
+    color: black;
+    font-size: 14px;
+    transition: 0.5s ease;
+}
+
+#register .login-link .toLogin:hover,
+#login .register-link .toRegister:hover {
+    color: blue;
+}
+
+#register .register-container,
+#login .login-container {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#register .register-box,
+#login .login-box {
+    margin: 2rem auto;
+    background-color: #ECE2E1;
+    min-width: 40vw;
+    max-width: 80vw;
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: rgba(50, 50, 93, 0.5) 0px 50px 100px -20px, rgba(0, 0, 0, 0.3) 0px 30px 60px -30px;
+}
+
+/* #register .eye-icon,
+#login .eye-icon {
+    position: absolute;
+    right: 10px;
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+} */
+
+#register .showHidePassword,
+#login .showHidePassword {
+    cursor: pointer;
+    font-size: 14px;
+    transition: 0.5s ease;
+}
+
+#register .showHidePassword:hover,
+#login .showHidePassword:hover {
+    color: gray;
+}
+
+/* Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Firefox */
+input[type=number] {
+    -moz-appearance: textfield;
+}
+
+/** --------------------- Home page styling ---------------------*/
+
+
+
+#home .navbar {
+    background-color: #04364A !important;
+}
+
+#home .main-container {
+    min-height: calc(100vh - 56px);
+}
+
+#home .todo-container {
+    padding: 0 8rem;
+}
+
+#home .header {
+    display: flex;
+    justify-content: space-between;
+    background-color: #71C9CE;
+    background-color: #164863;
+    color: white;
+    border-radius: 1rem;
+    box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
+    padding: 1rem;
+}
+
+#home .todo-body::-webkit-scrollbar {
+    width: 4px;
+    background-color: transparent;
+}
+
+#home .todo-body {
+    min-height: 75vh;
+    max-height: 75vh;
+    border-radius: 1rem;
+    box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
+    background-color: #9BBEC8;
+    padding: 1.5rem 0;
+    overflow: auto;
+}
+
+#home .todo-box {
+    -webkit-user-select: none;
+    /* Safari */
+    -ms-user-select: none;
+    /* IE 10 and IE 11 */
+    user-select: none;
+    /* Standard syntax */
+    background-color: white;
+    border-radius: 1rem;
+    min-height: 120px;
+    max-height: 120px;
+    overflow: hidden;
+    margin: 0 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: rgba(99, 99, 99, 0.2) 0px 2px 8px 0px;
+}
+
+#home .noData {
+    color: #232D3F;
+    font-weight: 900;
+}
+
+#home .addBtn .plusIcon {
+    cursor: pointer;
+    border-radius: 50%;
+    transition: 0.4s ease;
+    box-shadow: rgba(0, 0, 0, 0.25) 0px 54px 55px, rgba(0, 0, 0, 0.12) 0px -12px 30px, rgba(0, 0, 0, 0.12) 0px 4px 6px, rgba(0, 0, 0, 0.17) 0px 12px 13px, rgba(0, 0, 0, 0.09) 0px -3px 5px;
+}
+
+#home .addBtn .plusIcon:hover {
+    color: rgb(202, 202, 202);
+}
+
+#home .completeBtn .checkIcon {
+    color: rgb(0, 169, 0);
+    border-radius: 50%;
+    transition: 0.4s ease;
+    box-shadow: rgba(0, 0, 0, 0.25) 0px 54px 55px, rgba(0, 0, 0, 0.12) 0px -12px 30px, rgba(0, 0, 0, 0.12) 0px 4px 6px, rgba(0, 0, 0, 0.17) 0px 12px 13px, rgba(0, 0, 0, 0.09) 0px -3px 5px;
+}
+
+#home .todo-box-btns .todo-box-icons {
+    cursor: pointer;
+}
+
+#home .todo-box-btns .deleteIcon {
+    color: red
+}
+
+#home .todo-box-btns .deleteIcon:hover {
+    color: rgb(212, 0, 0)
+}
+
+#home .todo-box-btns .editIcon {
+    color: green;
+}
+
+#home .todo-box-btns .editIcon:hover {
+    color: darkgreen
+}
