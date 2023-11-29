@@ -1,37 +1,37 @@
 class APIRequestResponse {
-    constructor() {
-        try {
-            this.responseMessages = {
-                SUCCESS: "Success",
-                ERROR: "Error",
-                NOT_FOUND: "Not found",
-                UNAUTHORIZED: "Unauthorized",
-                FORBIDDEN: "Forbidden",
-                BAD_REQUEST: "Bad request",
-                INTERNAL_SERVER_ERROR: "Internal server error",
-                CONFLICT: "Conflict",
-                UNPROCESSABLE_ENTITY: "Unprocessable entity",
-                TOO_MANY_REQUESTS: "Too many requests",
-                CREATED: "User created",
-            };
+   constructor() {
+      try {
+         this.responseMessages = {
+            SUCCESS: "Success",
+            ERROR: "Error",
+            NOT_FOUND: "Not found",
+            UNAUTHORIZED: "Unauthorized",
+            FORBIDDEN: "Forbidden",
+            BAD_REQUEST: "Bad request",
+            INTERNAL_SERVER_ERROR: "Internal server error",
+            CONFLICT: "Conflict",
+            UNPROCESSABLE_ENTITY: "Unprocessable entity",
+            TOO_MANY_REQUESTS: "Too many requests",
+            CREATED: "User created",
+         };
 
-            this.responseCodes = {
-                SUCCESS: 200,
-                CREATED: 201,
-                NO_CONTENT: 204,
-                BAD_REQUEST: 400,
-                UNAUTHORIZED: 401,
-                FORBIDDEN: 403,
-                NOT_FOUND: 404,
-                CONFLICT: 409,
-                UNPROCESSABLE_ENTITY: 422,
-                TOO_MANY_REQUESTS: 429,
-                INTERNAL_SERVER_ERROR: 500,
-            };
-        } catch (error) {
-            throw error;
-        }
-    }
+         this.responseCodes = {
+            SUCCESS: 200,
+            CREATED: 201,
+            NO_CONTENT: 204,
+            BAD_REQUEST: 400,
+            UNAUTHORIZED: 401,
+            FORBIDDEN: 403,
+            NOT_FOUND: 404,
+            CONFLICT: 409,
+            UNPROCESSABLE_ENTITY: 422,
+            TOO_MANY_REQUESTS: 429,
+            INTERNAL_SERVER_ERROR: 500,
+         };
+      } catch (error) {
+         throw error;
+      }
+   }
 }
 module.exports = APIRequestResponse;
 

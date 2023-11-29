@@ -22,7 +22,7 @@ class taskController {
             const sqlGetAllTasksValues = [id];
 
             const data = await dbConnect.executeSqlQuery(sqlGetAllTasksQuery, sqlGetAllTasksValues);
-            console.log(data)
+            // console.log(data)
             if (data) {
                 res.status(apiResponse.responseCodes.SUCCESS)
                     .send({
@@ -115,13 +115,13 @@ class taskController {
             const array = await dbConnect.executeSqlQuery('select task_index from tasks where user_id = ? and task_status = ?', [user_id, task_status])
 
             const maxTaskIndex = array.reduce((max, obj) => {
+                console.log("max", max)
                 if (obj.task_index !== null && obj.task_index > max) {
                     return obj.task_index;
                 }
-                return max !== null ? max : 0;
-            }, null);
+                return max;
+            }, -1);
 
-            console.log(maxTaskIndex);
 
             const sqlInsertQuery = `INSERT INTO tasks(task_title, task_desc, task_status, user_id,task_date,task_index) VALUES (?,?,?,?,?,?)`;
             const sqlInsertValues = [task_title, task_desc, task_status, user_id, currentTimeStamp, maxTaskIndex + 1];
@@ -214,7 +214,7 @@ class taskController {
     }
     async deleteTask(req, res) {
         try {
-            const { task_id, user_id, sourceTask_status, sourceIndex, destinationTask_status, destinationIndex } = req.query;
+            const { task_id, user_id, task_status } = req.query;
 
             const sqlDeleteQuery = `DELETE from tasks where task_id = ? and user_id = ? and task_status = ?`
             const sqlDeleteValues = [task_id, user_id, task_status]
@@ -268,35 +268,147 @@ class taskController {
 
         try {
 
-            const { task_status, task_id, user_id, } = req.body;
+            // const { task_status, task_id, user_id } = req.body;
+            const { task_id, user_id, sourceTask_status, sourceIndex, destinationTask_status, destinationIndex } = req.body;
 
-            const sqlUpdateStatusQuery = `UPDATE tasks set task_status = ? where task_id = ? and user_id = ?`
-            const sqlUpdateStatusValues = [task_status, task_id, user_id]
-            console.log(sqlUpdateStatusQuery, sqlUpdateStatusValues)
-            const updateStatusTask = await dbConnect.executeSqlQuery(sqlUpdateStatusQuery, sqlUpdateStatusValues)
+            console.log("Input DATA ----------------- over -----------------", {
+                "task_id": task_id,
+                "user_id": user_id,
+                "sourceTask_status": sourceTask_status,
+                "sourceIndex": sourceIndex,
+                "destinationTask_status": destinationTask_status,
+                "destinationIndex": destinationIndex
+            }, "Input DATA ----------------- over -----------------")
 
-            console.log(updateStatusTask, "updateStatusTask")
 
-            if (updateStatusTask.affectedRows > 0) {
-                res.status(apiResponse.responseCodes.CREATED)
-                    .send({
-                        status: true,
-                        client_message: "Task status Updated successfully",
-                        dev: {
-                            message: "Task status Updated successfully.",
-                            error: ""
-                        }
-                    })
+
+            if (sourceTask_status === destinationTask_status) {
+                if (destinationIndex > sourceIndex) {
+                    console.log('destinationIndex > sourceIndex');
+                    // 👉 updating other task's Index 
+                    console.log('\n\n')
+                    const sqlUpdateSourceIndexQuery = 'UPDATE tasks SET task_index = task_index - 1 WHERE task_id > 0 AND task_status = ?  AND task_index >= ? AND task_index <= ?  AND task_id != ? AND user_id = ?'
+                    const sqlUpdateSourceIndexValue = [sourceTask_status, sourceIndex, destinationIndex, task_id, user_id]
+                    const updateSourceIndex = await dbConnect.executeSqlQuery(sqlUpdateSourceIndexQuery, sqlUpdateSourceIndexValue)
+                    console.log("updateSourceIndex", updateSourceIndex)
+
+
+                    // 👉 updating other task's Index 
+                    console.log('\n\n')
+                    const sqlUpdateDestinationIndexQuery = 'UPDATE tasks SET task_index = ? where task_id = ? AND user_id = ?'
+                    const sqlUpdateDestinationIndexValue = [destinationIndex, task_id, user_id]
+                    const updateDestinationIndex = await dbConnect.executeSqlQuery(sqlUpdateDestinationIndexQuery, sqlUpdateDestinationIndexValue)
+                    console.log("updateDestinationIndex", updateDestinationIndex)
+
+                    if (updateSourceIndex.affectedRows > 0 || updateDestinationIndex.affectedRows > 0) {
+                        res.status(apiResponse.responseCodes.CREATED)
+                            .send({
+                                status: true,
+                                client_message: "Task status Updated successfully",
+                                dev: {
+                                    message: "Task status Updated successfully.",
+                                    error: ""
+                                }
+                            })
+                    } else {
+                        res.status(apiResponse.responseCodes.BAD_REQUEST)
+                            .send({
+                                status: false,
+                                client_message: "Error while Updating",
+                                dev: {
+                                    message: "Error while Updating.",
+                                    error: apiResponse.responseMessages.BAD_REQUEST
+                                }
+                            })
+
+                    }
+
+                } else if (destinationIndex < sourceIndex) {
+                    console.log('destinationIndex < sourceIndex');
+                    // 👉 updating other task's Index 
+                    console.log('\n\n')
+                    const sqlUpdateSourceIndexQuery = 'UPDATE tasks SET task_index = task_index + 1 WHERE task_id > 0 AND task_status = ?  AND task_index >= ? AND task_index <= ?  AND task_id != ? AND user_id = ?'
+                    const sqlUpdateSourceIndexValue = [sourceTask_status, destinationIndex, sourceIndex, task_id, user_id]
+                    const updateSourceIndex = await dbConnect.executeSqlQuery(sqlUpdateSourceIndexQuery, sqlUpdateSourceIndexValue)
+                    console.log("updateSourceIndex", updateSourceIndex)
+
+
+                    // 👉 updating other task's Index 
+                    console.log('\n\n')
+                    const sqlUpdateDestinationIndexQuery = 'UPDATE tasks SET task_index = ? where task_id = ? AND user_id = ?'
+                    const sqlUpdateDestinationIndexValue = [destinationIndex, task_id, user_id]
+                    const updateDestinationIndex = await dbConnect.executeSqlQuery(sqlUpdateDestinationIndexQuery, sqlUpdateDestinationIndexValue)
+                    console.log("updateDestinationIndex", updateDestinationIndex)
+
+                    if (updateSourceIndex.affectedRows > 0 && updateDestinationIndex.affectedRows > 0) {
+                        res.status(apiResponse.responseCodes.CREATED)
+                            .send({
+                                status: true,
+                                client_message: "Task status Updated successfully",
+                                dev: {
+                                    message: "Task status Updated successfully.",
+                                    error: ""
+                                }
+                            })
+                    } else {
+                        res.status(apiResponse.responseCodes.BAD_REQUEST)
+                            .send({
+                                status: false,
+                                client_message: "Error while Updating",
+                                dev: {
+                                    message: "Error while Updating.",
+                                    error: apiResponse.responseMessages.BAD_REQUEST
+                                }
+                            })
+                    }
+                }
+            } else if (sourceTask_status !== destinationTask_status) {
+                console.log("sourceTask_status !== destinationTask_status")
+                // 👉 updating other task's Index 
+                console.log('\n\n')
+                const sqlUpdateDestinationIndexQuery = 'UPDATE tasks SET task_index = task_index + 1 WHERE task_id > 0 AND task_status = ? AND task_index >= ? AND task_id != ? AND user_id = ?'
+                const sqlUpdateDestinationIndexValue = [destinationTask_status, destinationIndex, task_id, user_id]
+                const updateDestinationIndex = await dbConnect.executeSqlQuery(sqlUpdateDestinationIndexQuery, sqlUpdateDestinationIndexValue)
+                console.log("updateDestinationIndex", updateDestinationIndex)
+
+                // 👉 updating other task's Index 
+                const sqlUpdateSourceIndexQuery = 'UPDATE tasks SET task_index = task_index - 1 WHERE task_id > 0 AND task_status = ? AND task_index >= ? AND task_id != ? AND user_id = ?'
+                const sqlUpdateSourceIndexValue = [sourceTask_status, sourceIndex, task_id, user_id]
+                const updateSourceIndex = await dbConnect.executeSqlQuery(sqlUpdateSourceIndexQuery, sqlUpdateSourceIndexValue)
+                console.log("updateDestinationIndex", updateSourceIndex)
+
+                // 👉 updating other task's Index 
+                // console.log('\n\n')
+                const sqlUpdateCurrentTaskStatusIndexQuery = 'UPDATE tasks SET task_index = ?,task_status = ? where task_id = ? AND user_id = ?'
+                const sqlUpdateCurrentTaskStatusIndexValue = [destinationIndex, destinationTask_status, task_id, user_id]
+                const updateCurrentTaskStatusIndex = await dbConnect.executeSqlQuery(sqlUpdateCurrentTaskStatusIndexQuery, sqlUpdateCurrentTaskStatusIndexValue)
+                console.log("updateCurrentTaskStatusIndex", updateCurrentTaskStatusIndex)
+
+
+
+                if (updateDestinationIndex.affectedRows > 0 || updateCurrentTaskStatusIndex.affectedRows > 0 || updateSourceIndex.affectedRows > 0) {
+                    res.status(apiResponse.responseCodes.CREATED)
+                        .send({
+                            status: true,
+                            client_message: "Task status Updated successfully",
+                            dev: {
+                                message: "Task status Updated successfully.",
+                                error: ""
+                            }
+                        })
+                } else {
+                    res.status(apiResponse.responseCodes.BAD_REQUEST)
+                        .send({
+                            status: false,
+                            client_message: "Error while Updating",
+                            dev: {
+                                message: "Error while Updating.",
+                                error: apiResponse.responseMessages.BAD_REQUEST
+                            }
+                        })
+
+                }
             }
-            else {
-                res.status(apiResponse.responseCodes.BAD_REQUEST)
-                    .send({
-                        status: false,
-                        client_message: "Error Updating task status.",
-                        error: apiResponse.responseMessages.BAD_REQUEST
-                    })
-            }
-
         } catch (error) {
             res.status(apiResponse.responseCodes.INTERNAL_SERVER_ERROR)
                 .send({
