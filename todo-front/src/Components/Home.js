@@ -22,7 +22,7 @@ function Home() {
 
   // Data set when we enter values in add or update's modal
   const [addNewTodoData, setAddNewTodoData] = useState()
-  const [updateTodoData, setUpdateTodoData] = useState()
+  const [taskById, setTaskById] = useState()
 
   // Status for new Task 
   const [newTaskStatus, setNewTaskStatus] = useState('')
@@ -31,12 +31,14 @@ function Home() {
   const [currDeleteTaskData, setCurrDeleteTaskData] = useState()
   const [currUpdateTaskData, setCurrUpdateTaskData] = useState()
 
+  // Values that are to be Viewed 
 
   // Modal useSates
   const [logoutShow, setLogoutShow] = useState(false);
   const [addNewTaskShow, setAddNewTaskShow] = useState(false);
   const [updateTaskShow, setUpdateTaskShow] = useState(false)
   const [deleteShow, setDeleteShow] = useState(false)
+  const [viewTaskShow, setViewTaskShow] = useState(false)
 
   // * Function for Modals
   const handleLogoutClose = () => setLogoutShow(false);
@@ -45,6 +47,8 @@ function Home() {
   const handleAddNewTaskShow = () => setAddNewTaskShow(true);
   const handleUpdateClose = () => setUpdateTaskShow(false);
   const handleUpdateShow = () => setUpdateTaskShow(true);
+  const handleViewTaskClose = () => setViewTaskShow(false);
+  const handleViewTaskShow = () => setViewTaskShow(true);
   const handleDeleteClose = () => setDeleteShow(false);
   const handleDeleteShow = () => setDeleteShow(true);
 
@@ -80,16 +84,15 @@ function Home() {
   };
 
   // * for Getting the data of Specific Task 
-  const getTodoForUpdate = async (taskId) => {
+  const getTodoById = async (taskId) => {
     if (userId !== '' && taskId !== undefined) {
       try {
         await axios.get(Base_URL + getTasksById + `/${userId}/${taskId}`)
           .then((response) => {
-            setUpdateTodoData({
+            setTaskById({
               taskTitle: response?.data?.outdata?.task_title,
               taskDescription: response?.data?.outdata?.task_desc
             })
-            handleUpdateShow()
           })
           .catch(err => console.log(err))
           .finally(() => {
@@ -153,13 +156,13 @@ function Home() {
 
   // *for Updating task using API 
   const update_Task = async () => {
-    console.log({
-      "task_title": updateTodoData.taskTitle,
-      "task_desc": updateTodoData.taskDescription,
-      "task_status": currUpdateTaskData.task_status,
-      "user_id": userId,
-      "task_id": currUpdateTaskData.task_id,
-    })
+    // console.log({
+    //   "task_title": taskById.taskTitle,
+    //   "task_desc": taskById.taskDescription,
+    //   "task_status": currUpdateTaskData.task_status,
+    //   "user_id": userId,
+    //   "task_id": currUpdateTaskData.task_id,
+    // })
     if (addNewTodoData.taskTitle !== '' && currUpdateTaskData.task_status !== '' && userId !== '') {
       await axios.patch(Base_URL + updateTask,
         {
@@ -180,7 +183,7 @@ function Home() {
       ).catch((error) => {
         toast.error(error.response.data.client_message);
       }).then(() => {
-
+        setTaskById({})
       })
     } else {
       toast.error('Something went wrong...!')
@@ -217,28 +220,64 @@ function Home() {
   // *for Updating task using API 
   const dragUpdateStatus = async (e) => {
     console.log(e)
+    console.log(e.draggableId === null || e.destination === null || e.source === null)
+    if (e.draggableId === null || e.destination === null || e.source === null) return;
 
-    let draggedId = e.draggableId;
-    
-    if (draggedId = "Pending") { draggedId = 1 }
-    else if (draggedId = "In Progress") { draggedId = 2 }
-    else if (draggedId = "Completed") { draggedId = 3 }
 
-    const dropDestination = e.destination.droppableId;
-    const dropDestinationIndex = e.destination.droppableId;
+    let draggedId = Number(e.draggableId);
+    let dropDestination = e.destination.droppableId
+    let dropDestinationIndex = e.destination.index;
+    let dragSource = e.source.droppableId;
+    let dragSourceIndex = e.source.index;
 
-    const dragSource = e.source.droppableId;
-    const dragSourceId = e.source.droppableId;
+    // altering Source status name to Numbers
+    if (dragSource === "Pending") { dragSource = 1 }
+    else if (dragSource === "In Progress") { dragSource = 2 }
+    else if (dragSource === "Completed") { dragSource = 3 }
 
-    try {
-      await axios.patch(Base_URL + statusUpdateTask, {
-        "task_status": 1,
-        "task_id": draggedId,
-        "user_id": userId
-      })
-    } catch (error) {
-      console.log(error)
-      toast.error(error.response.data.client_message);
+    // altering Destination  status name to Numbers
+    if (dropDestination === "Pending") { dropDestination = 1 }
+    else if (dropDestination === "In Progress") { dropDestination = 2 }
+    else if (dropDestination === "Completed") { dropDestination = 3 }
+
+
+    console.log("dropDestination !== dragSource && dropDestinationIndex !== dragSourceIndex")
+    console.log(dropDestination !== dragSource, dropDestinationIndex !== dragSourceIndex)
+
+    if (dropDestination === dragSource) {
+      if (dropDestinationIndex !== dragSourceIndex)
+        try {
+          await axios.patch(Base_URL + statusUpdateTask, {
+            "task_id": draggedId,
+            "user_id": userId,
+            "sourceTask_status": dragSource,
+            "sourceIndex": dragSourceIndex,
+            "destinationTask_status": dropDestination,
+            "destinationIndex": dropDestinationIndex
+          }).then((res) => {
+            getAllTodo(userId);
+          })
+        } catch (error) {
+          console.log(error)
+          toast.error(error.response.data.client_message);
+        }
+    }
+    else {
+      try {
+        await axios.patch(Base_URL + statusUpdateTask, {
+          "task_id": draggedId,
+          "user_id": userId,
+          "sourceTask_status": dragSource,
+          "sourceIndex": dragSourceIndex,
+          "destinationTask_status": dropDestination,
+          "destinationIndex": dropDestinationIndex
+        }).then((res) => {
+          getAllTodo(userId);
+        })
+      } catch (error) {
+        console.log(error)
+        toast.error(error.response.data.client_message);
+      }
     }
 
   }
@@ -292,49 +331,59 @@ function Home() {
                   </div>
                 </div>
 
-                <div className="todo-body Pending-body">
-                  <Droppable droppableId="Pending">
-                    {(provider) => (
-                      <div  {...provider.droppableProps} ref={provider.innerRef}>
+                <Droppable droppableId="Pending">
+                  {(provider) => (
+                    <div  {...provider.droppableProps} ref={provider.innerRef}>
+                      <div className="todo-body Pending-body">
                         {
-                          data && data?.length > 0 && data.some(task => task.task_status === 'Pending') ? data?.sort((a, b) => a.task_id - b.task_id)?.map((i, index) => {
+                          // data && data?.length > 0 && data.some(task => task.task_status === 'Pending') ? data?.sort((a, b) => a.task_id - b.task_id)?.map((i, index) => {
+                          data && data?.length > 0 && data.some(task => task.task_status === 'Pending') ?
 
-                            return i.task_status === 'Pending' && (<Draggable key={i.task_id} draggableId={String(i.task_id)} index={index}>
-                              {(provider) => (<div key={i.task_id} className="todo-box p-3" ref={provider.innerRef} {...provider.draggableProps} {...provider.dragHandleProps} >
-                                <div className="todo-box-header fw-bold d-flex justify-content-between">
-                                  <div className="date">
-                                    {moment(i?.task_date).format("YYYY-MM-DD h:mm A")}
-                                  </div>
-                                  <div className="todo-box-btns">
-                                    <FontAwesomeIcon className='mx-1 todo-box-icons editIcon'
-                                      onClick={() => {
-                                        getTodoForUpdate(i.task_id)
-                                        setCurrUpdateTaskData({
+                            data?.sort((a, b) => a.task_index - b.task_index)?.filter(e => e.task_status === 'Pending').map((i, index) => {
+
+                              return i.task_status === 'Pending' && (<Draggable key={i.task_id} draggableId={String(i.task_id)} index={index}>
+                                {(provider) => (<div key={i.task_id} className="todo-box p-3" ref={provider.innerRef} {...provider.draggableProps} {...provider.dragHandleProps} >
+                                  <div className="todo-box-header fw-bold d-flex justify-content-between">
+                                    <div className="date">
+                                      {moment(i?.task_date).format("YYYY-MM-DD h:mm A")}
+                                    </div>
+                                    <div className="todo-box-btns">
+                                      {i.task_index}
+                                      <FontAwesomeIcon className='mx-1 todo-box-icons editIcon'
+                                        onClick={() => {
+                                          getTodoById(i.task_id)
+                                          handleUpdateShow()
+                                          setCurrUpdateTaskData({
+                                            task_id: i.task_id,
+                                            task_status: i.task_status
+                                          })
+                                        }}
+                                        icon={faPencil} />
+                                      <FontAwesomeIcon className='mx-1 todo-box-icons deleteIcon' onClick={() => {
+                                        handleDeleteShow()
+                                        setCurrDeleteTaskData({
                                           task_id: i.task_id,
                                           task_status: i.task_status
                                         })
-                                      }}
-                                      icon={faPencil} />
-                                    <FontAwesomeIcon className='mx-1 todo-box-icons deleteIcon' onClick={() => {
-                                      handleDeleteShow()
-                                      setCurrDeleteTaskData({
-                                        task_id: i.task_id,
-                                        task_status: i.task_status
-                                      })
-                                    }} icon={faTrash} />
+                                      }} icon={faTrash} />
+                                    </div>
                                   </div>
-                                </div>
-                                <hr className='hr' />
-                                <div className="todo-box-title mt-3">
-                                  {i.task_title}
-                                </div>
-                              </div>)}</Draggable>)
-                          }).sort((a, b) => b.task_id - a.task_id) : <div className="mt-4 noData text-center h3  ">No Task Pending.</div>
-                        }</div>)
-                    }
-                  </Droppable>
+                                  <hr className='hr' />
+                                  <div className="todo-box-title mt-3" onClick={() => {
+                                    handleViewTaskShow()
+                                    getTodoById(i.task_id)
+                                  }}>
 
-                </div>
+                                    {i.task_title}
+                                  </div>
+                                </div>)}</Draggable>)
+                            }).sort((a, b) => b.task_id - a.task_id) : <div className="mt-4 noData text-center h3  ">No Task Pending.</div>
+                        }
+                      </div>
+                    </div>)
+                  }
+                </Droppable>
+
               </Col>
               <Col lg={4}>
                 <div className="header h3  InProgress-header">
@@ -344,49 +393,59 @@ function Home() {
                   </div>
                 </div>
 
-                <div className="todo-body InProgress-body">
-                  <Droppable droppableId="In Progress">
-                    {(provider) => (
-                      <div  {...provider.droppableProps} ref={provider.innerRef}>
+                <Droppable droppableId="In Progress">
+                  {(provider) => (
+                    <div  {...provider.droppableProps} ref={provider.innerRef}>
+                      <div className="todo-body InProgress-body">
                         {
-                          data && data?.length > 0 && data.some(task => task.task_status === 'In Progress') ? data?.sort((a, b) => a.task_id - b.task_id)?.map((i, index) => {
+                          data && data?.length > 0 && data.some(task => task.task_status === 'In Progress') ?
 
-                            return i.task_status === 'In Progress' && (<Draggable key={i.task_id} draggableId={String(i.task_id)} index={index}>
-                              {(provider) => (<div key={i.task_id} className="todo-box p-3" ref={provider.innerRef} {...provider.draggableProps} {...provider.dragHandleProps} >
-                                <div className="todo-box-header fw-bold d-flex justify-content-between">
-                                  <div className="date">
-                                    {moment(i?.task_date).format("YYYY-MM-DD h:mm A")}
-                                  </div>
-                                  <div className="todo-box-btns">
-                                    <FontAwesomeIcon className='mx-1 todo-box-icons editIcon'
-                                      onClick={() => {
-                                        getTodoForUpdate(i.task_id)
-                                        setCurrUpdateTaskData({
+                            data?.sort((a, b) => a.task_index - b.task_index)?.filter(e => e.task_status === 'In Progress').map((i, index) => {
+
+                              return <Draggable key={i.task_id} draggableId={String(i.task_id)} index={i.task_index}>
+                                {(provider) => (<div key={i.task_id} className="todo-box p-3" ref={provider.innerRef} {...provider.draggableProps} {...provider.dragHandleProps} >
+                                  <div className="todo-box-header fw-bold d-flex justify-content-between">
+                                    <div className="date">
+                                      {moment(i?.task_date).format("YYYY-MM-DD h:mm A")}
+                                    </div>
+                                    <div className="todo-box-btns">
+                                      {i.task_index}
+                                      <FontAwesomeIcon className='mx-1 todo-box-icons editIcon'
+                                        onClick={() => {
+                                          getTodoById(i.task_id)
+                                          handleUpdateShow()
+                                          setCurrUpdateTaskData({
+                                            task_id: i.task_id,
+                                            task_status: i.task_status
+                                          })
+                                        }}
+                                        icon={faPencil} />
+                                      <FontAwesomeIcon className='mx-1 todo-box-icons deleteIcon' onClick={() => {
+                                        handleDeleteShow()
+                                        setCurrDeleteTaskData({
                                           task_id: i.task_id,
                                           task_status: i.task_status
                                         })
-                                      }}
-                                      icon={faPencil} />
-                                    <FontAwesomeIcon className='mx-1 todo-box-icons deleteIcon' onClick={() => {
-                                      handleDeleteShow()
-                                      setCurrDeleteTaskData({
-                                        task_id: i.task_id,
-                                        task_status: i.task_status
-                                      })
-                                    }} icon={faTrash} />
+                                      }} icon={faTrash} />
+                                    </div>
                                   </div>
-                                </div>
-                                <hr className='hr' />
-                                <div className="todo-box-title mt-3">
-                                  {i.task_title}
-                                </div>
-                              </div>)}</Draggable>)
-                          }) : <div className="mt-4 noData text-center h3  ">No Task In Progress.</div>
-                        }</div>)
-                    }
-                  </Droppable>
-                </div>
+                                  <hr className='hr' />
+                                  <div className="todo-box-title mt-3" onClick={() => {
+                                    handleViewTaskShow()
+                                    getTodoById(i.task_id)
+                                  }}>
+
+                                    {i.task_title}
+                                  </div>
+                                </div>)}</Draggable>
+                            }) : <div className="mt-4 noData text-center h3  ">No Task In Progress.</div>
+                        }
+                      </div>
+                    </div>)
+                  }
+                </Droppable>
               </Col>
+
               <Col lg={4}>
                 <div className="header h3  InProgress-header">
                   <div className="title">Completed</div>
@@ -394,10 +453,10 @@ function Home() {
                     <FontAwesomeIcon className='checkIcon' icon={faCircleCheck} />
                   </div>
                 </div>
-                <div className="todo-body Completed-body">
-                  <Droppable droppableId="Completed">
-                    {(provider) => (
-                      <div  {...provider.droppableProps} ref={provider.innerRef}>
+                <Droppable droppableId="Completed">
+                  {(provider) => (
+                    <div  {...provider.droppableProps} ref={provider.innerRef}>
+                      <div className="todo-body Completed-body">
                         {
                           data && data?.length > 0 && data.some(task => task.task_status === 'Completed') ? data?.sort((a, b) => a.task_index - b.task_index)?.map((i, index) => {
 
@@ -410,7 +469,8 @@ function Home() {
                                   <div className="todo-box-btns">
                                     <FontAwesomeIcon className='mx-1 todo-box-icons editIcon'
                                       onClick={() => {
-                                        getTodoForUpdate(i.task_id)
+                                        getTodoById(i.task_id)
+                                        handleUpdateShow()
                                         setCurrUpdateTaskData({
                                           task_id: i.task_id,
                                           task_status: i.task_status
@@ -427,15 +487,19 @@ function Home() {
                                   </div>
                                 </div>
                                 <hr className='hr' />
-                                <div className="todo-box-title mt-3">
+                                <div className="todo-box-title mt-3 text-decoration-line-through" onClick={() => {
+                                  handleViewTaskShow()
+                                  getTodoById(i.task_id)
+                                }}>
                                   {i.task_title}
                                 </div>
                               </div>)}</Draggable>)
                           }) : <div className="mt-4 noData text-center h3  ">No Task Completed.</div>
-                        }</div>)
-                    }
-                  </Droppable>
-                </div>
+                        }
+                      </div>
+                    </div>)
+                  }
+                </Droppable>
               </Col>
             </DragDropContext>
           </Row>
@@ -467,6 +531,38 @@ function Home() {
         </Modal.Footer>
       </Modal>
 
+
+      {/* //* ----------- View task Modal */}
+      <Modal show={viewTaskShow} onHide={handleViewTaskClose}>
+        <Modal.Header closeButton>
+          {/* <Modal.Title>Add New {newTaskStatus}</Modal.Title> */}
+        </Modal.Header>
+        <Modal.Body className='p-5'>
+          <div className="task-show">
+            <div className="task-show-label">Header :</div>
+            <div className="task-show-values task-show-title mb-4">
+              {taskById?.taskTitle}
+            </div>
+            {/* <hr className='hr' /> */}
+            <div className="task-show-label">Description :</div>
+            <div className="task-show-values task-show-desc">
+              {taskById?.taskDescription ? taskById?.taskDescription : 'Null'}
+            </div>
+          </div>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleViewTaskClose}>
+            Cancel
+          </Button>
+          {/* <Button variant="success"
+            onClick={() => {
+              addNewTask()
+            }}
+          >
+            Add
+          </Button> */}
+        </Modal.Footer>
+      </Modal>
 
       {/* //* ----------- Add New todo Modal */}
       <Modal show={addNewTaskShow} onHide={handleAddNewTaskClose}>
@@ -528,7 +624,7 @@ function Home() {
           >
             <Form.Control
               name='taskTitle'
-              defaultValue={updateTodoData?.taskTitle}
+              defaultValue={taskById?.taskTitle}
               placeholder={`${newTaskStatus} Task Title`}
               onBlur={(e) => { updateAddDataValues(e) }}
               onChange={(e) => { updateAddDataValues(e) }}
@@ -536,7 +632,7 @@ function Home() {
           </FloatingLabel>
           <FloatingLabel className='updateTaskInput' controlId="floatingTextarea2" label={`${newTaskStatus} Task Description`}>
             <Form.Control
-              defaultValue={updateTodoData?.taskDescription}
+              defaultValue={taskById?.taskDescription}
               as="textarea"
               name='taskDescription'
               placeholder={`${newTaskStatus} Task Description`}
@@ -548,7 +644,10 @@ function Home() {
 
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={handleUpdateClose}>
+          <Button variant="secondary" onClick={() => {
+            handleUpdateClose()
+            setTaskById({})
+          }}>
             Cancel
           </Button>
           <Button variant="success"
