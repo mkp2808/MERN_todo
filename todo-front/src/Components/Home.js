@@ -1,17 +1,15 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom';
 import Navbar from 'react-bootstrap/Navbar';
 import Button from 'react-bootstrap/Button';
 import Row from 'react-bootstrap/Row';
-import Col from 'react-bootstrap/Col';
-import { Container, FloatingLabel, Form, Modal, Nav } from 'react-bootstrap';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCircleCheck, faPencil, faPlusCircle, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { Container, FloatingLabel, Form, ListGroup, Modal, Nav } from 'react-bootstrap';
+
 import axios from 'axios';
 import { Base_URL, addTask, getAllTasks, deleteTask, getTasksById, updateTask, statusUpdateTask } from '../API/AllApiEndPoints';
-import moment from 'moment/moment';
 import { toast } from 'react-toastify';
-import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd';
+import { DragDropContext } from 'react-beautiful-dnd';
+import TodoBox from './TodoBox';
 
 function Home() {
   const navigate = useNavigate();
@@ -46,11 +44,11 @@ function Home() {
   const handleAddNewTaskClose = () => setAddNewTaskShow(false);
   const handleAddNewTaskShow = () => setAddNewTaskShow(true);
   const handleUpdateClose = () => setUpdateTaskShow(false);
-  const handleUpdateShow = () => setUpdateTaskShow(true);
+  const handleUpdateShow = useCallback(() => setUpdateTaskShow(true), [])
   const handleViewTaskClose = () => setViewTaskShow(false);
-  const handleViewTaskShow = () => setViewTaskShow(true);
+  const handleViewTaskShow = useCallback(() => setViewTaskShow(true), [])
   const handleDeleteClose = () => setDeleteShow(false);
-  const handleDeleteShow = () => setDeleteShow(true);
+  const handleDeleteShow = useCallback(() => setDeleteShow(true), [])
 
   // *Navigating to Login if there is no token
   useEffect(() => {
@@ -84,7 +82,7 @@ function Home() {
   };
 
   // * for Getting the data of Specific Task 
-  const getTodoById = async (taskId) => {
+  const getTodoById = useCallback(async (taskId) => {
     if (userId !== '' && taskId !== undefined) {
       try {
         await axios.get(Base_URL + getTasksById + `/${userId}/${taskId}`)
@@ -108,14 +106,14 @@ function Home() {
       toast.error('Something went wrong...!')
     }
 
-  };
+  }, [userId])
 
 
   // *for opening Add Task modal 
-  const showAddNewTask = (taskStatus) => {
+  const showAddNewTask = useCallback((taskStatus) => {
     setNewTaskStatus(taskStatus);
     handleAddNewTaskShow()
-  }
+  }, [])
 
   // *for Updating Add Data Values
   const updateAddDataValues = async (e) => {
@@ -292,6 +290,7 @@ function Home() {
   //   }
   // }, [data])
 
+
   return (
     <div id='home'>
 
@@ -323,7 +322,7 @@ function Home() {
         <div className="todo-container">
           <Row>
             <DragDropContext onDragEnd={(e) => { dragUpdateStatus(e) }}>
-              <Col lg={4}>
+              {/* <Col lg={4}>
                 <div className="header h3  Pending-header">
                   <div className="title">Pending</div>
                   <div className="addBtn">
@@ -348,7 +347,6 @@ function Home() {
                                       {moment(i?.task_date).format("YYYY-MM-DD h:mm A")}
                                     </div>
                                     <div className="todo-box-btns">
-                                      {i.task_index}
                                       <FontAwesomeIcon className='mx-1 todo-box-icons editIcon'
                                         onClick={() => {
                                           getTodoById(i.task_id)
@@ -384,8 +382,8 @@ function Home() {
                   }
                 </Droppable>
 
-              </Col>
-              <Col lg={4}>
+              </Col> */}
+              {/* <Col lg={4}>
                 <div className="header h3  InProgress-header">
                   <div className="title">In Progress</div>
                   <div className="addBtn">
@@ -409,7 +407,6 @@ function Home() {
                                       {moment(i?.task_date).format("YYYY-MM-DD h:mm A")}
                                     </div>
                                     <div className="todo-box-btns">
-                                      {i.task_index}
                                       <FontAwesomeIcon className='mx-1 todo-box-icons editIcon'
                                         onClick={() => {
                                           getTodoById(i.task_id)
@@ -444,9 +441,9 @@ function Home() {
                     </div>)
                   }
                 </Droppable>
-              </Col>
+              </Col> */}
 
-              <Col lg={4}>
+              {/* <Col lg={4}>
                 <div className="header h3  InProgress-header">
                   <div className="title">Completed</div>
                   <div className="completeBtn">
@@ -500,7 +497,10 @@ function Home() {
                     </div>)
                   }
                 </Droppable>
-              </Col>
+              </Col> */}
+              <TodoBox data={data} showAddNewTask={showAddNewTask} getTodoById={getTodoById} handleUpdateShow={handleUpdateShow} setCurrUpdateTaskData={setCurrUpdateTaskData} handleDeleteShow={handleDeleteShow} setCurrDeleteTaskData={setCurrDeleteTaskData} handleViewTaskShow={handleViewTaskShow} currStatus={'Pending'} todoBodyClass={'Pending-body'} />
+              <TodoBox data={data} showAddNewTask={showAddNewTask} getTodoById={getTodoById} handleUpdateShow={handleUpdateShow} setCurrUpdateTaskData={setCurrUpdateTaskData} handleDeleteShow={handleDeleteShow} setCurrDeleteTaskData={setCurrDeleteTaskData} handleViewTaskShow={handleViewTaskShow} currStatus={'In Progress'} todoBodyClass={'InProgress-body'} />
+              <TodoBox data={data} showAddNewTask={showAddNewTask} getTodoById={getTodoById} handleUpdateShow={handleUpdateShow} setCurrUpdateTaskData={setCurrUpdateTaskData} handleDeleteShow={handleDeleteShow} setCurrDeleteTaskData={setCurrDeleteTaskData} handleViewTaskShow={handleViewTaskShow} currStatus={'Completed'} todoBodyClass={'Completed-body'} />
             </DragDropContext>
           </Row>
         </div>

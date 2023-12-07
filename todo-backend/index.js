@@ -11,9 +11,11 @@ const port = process.env.PORT;
 
 const app = express();
 
-app.use(cors({
-    origin: ['http://localhost:3000'], // Replace with your allowed origins
-  }));
+// app.use(cors({
+//     origin: ['http://localhost:3000',' http://192.168.1.37:3000'], // Replace with your allowed origins
+//   }));
+
+app.use(cors());
 
 // used to get the json directly form the body
 app.use(bodyParser.json()); 
